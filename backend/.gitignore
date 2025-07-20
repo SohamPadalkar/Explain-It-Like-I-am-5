@@ -1,0 +1,12 @@
+# ⚙️ Node modules and environment files
+node_modules/
+.env
+
+# 🐞 Logs and system files
+*.log
+.DS_Store
+Thumbs.db
+
+# 🧪 IDE and editor files
+.vscode/
+.idea/
