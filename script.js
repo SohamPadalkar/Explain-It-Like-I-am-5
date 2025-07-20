@@ -5,32 +5,6 @@ const historyList = document.getElementById('historyList');
 
 const history = [];
 
-explainBtn.addEventListener('click', () => {
-  const userTopic = topicInput.value.trim();
-
-  if (userTopic === '') {
-    outputArea.style.display = 'block';
-    outputArea.textContent = "Please enter a topic first!";
-    return;
-  }
-
-  outputArea.style.display = 'block';
-  outputArea.textContent = "Thinking about your topic... 🤔";
-
-  setTimeout(() => {
-    const explanation = generateSimpleExplanation(userTopic);
-    outputArea.textContent = explanation;
-
-    // Add to history
-    history.push({ topic: userTopic, answer: explanation });
-    renderHistory();
-  }, 1000);
-});
-
-function generateSimpleExplanation(topic) {
-  return `🧠 Here's a simple explanation about "${topic}" like you're 5:\n\nImagine it's like stacking blocks — piece by piece, you understand how "${topic}" works! 🧱`;
-}
-
 function renderHistory() {
   historyList.innerHTML = '';
 
@@ -63,11 +37,77 @@ function renderHistory() {
     historyList.appendChild(li);
   });
 }
+
+const storedHistory = localStorage.getItem("explanationHistory");
+if (storedHistory) {
+  history.push(...JSON.parse(storedHistory));
+  renderHistory();
+}
+
+/* Legacy mock explanation logic (commented out)
+explainBtn.addEventListener('click', () => {
+  const userTopic = topicInput.value.trim();
+
+  if (userTopic === '') {
+    outputArea.style.display = 'block';
+    outputArea.textContent = "Please enter a topic first!";
+    return;
+  }
+
+  outputArea.style.display = 'block';
+  outputArea.textContent = "Thinking about your topic... 🤔";
+
+  setTimeout(() => {
+    const explanation = generateSimpleExplanation(userTopic);
+    outputArea.textContent = explanation;
+
+    history.push({ topic: userTopic, answer: explanation });
+    renderHistory();
+  }, 1000);
+});
+*/
+
+document.getElementById("explainBtn").addEventListener("click", async () => {
+  const topic = topicInput.value.trim();
+  if (!topic) return;
+
+  outputArea.style.display = 'block';
+  outputArea.textContent = "Explaining... 🧠";
+
+  try {
+    const response = await fetch("http://127.0.0.1:3000/explain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic })
+    });
+
+    const data = await response.json();
+    const explanation = data.explanation || generateSimpleExplanation(topic);
+
+    outputArea.textContent = explanation;
+    updateHistory(topic, explanation);
+  } catch (error) {
+    outputArea.textContent = "Something went wrong!";
+    console.error("Error:", error);
+  }
+});
+
+function generateSimpleExplanation(topic) {
+  return `🧠 Here's a simple explanation about "${topic}" like you're 5:\n\nImagine it's like stacking blocks — piece by piece, you understand how "${topic}" works! 🧱`;
+}
+
+
+
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
 clearHistoryBtn.addEventListener('click', () => {
-  history.length = 0; // Clear array
-  renderHistory();    // Refresh display
+  history.length = 0;
+  localStorage.removeItem("explanationHistory");
+  renderHistory();
 });
 
-
+function updateHistory(topic, explanation) {
+  history.push({ topic, answer: explanation });
+  localStorage.setItem("explanationHistory", JSON.stringify(history));
+  renderHistory();
+}

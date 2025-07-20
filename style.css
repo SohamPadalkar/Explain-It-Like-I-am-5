@@ -65,3 +65,8 @@ body {
     #historyArea {
         margin-top: 2rem;
     }
+
+    #clearHistoryButton {
+  display: block;
+  margin: 20px auto;
+}
